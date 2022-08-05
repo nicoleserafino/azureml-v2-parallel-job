@@ -65,7 +65,7 @@ jobs:
     command: >-
       cd ${{outputs.predictions_mltable}};
       echo "paths:" > MLTable;
-      for f in *.csv ; do echo "  - file: $f" >> MLTable ; done;
+      echo " - pattern: ./*.csv" >> MLTable;
       echo "transformations:" >> MLTable;
       echo " - read_delimited:" >> MLTable;
       echo " "" "" "" """ "delimiter: ','" >> MLTable;
@@ -90,6 +90,6 @@ jobs:
     inputs:
       predictions_mltable:
         type: mltable
-        mode: direct
+        mode: ro_mount
         path: ${{parent.jobs.generate_predictions_mltable.outputs.predictions_mltable}}
     environment: azureml:amlv2-pj-evaluation@latest
