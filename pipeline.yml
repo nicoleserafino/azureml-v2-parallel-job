@@ -1,9 +1,9 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
 type: pipeline
 display_name: amlv2_parallel_job
-compute: azureml:cpu-cluster
+compute: azureml:nserafino-test
 settings:
-  force_rerun: false
+  force_rerun: true
 
 jobs:
 
