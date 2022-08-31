@@ -21,11 +21,11 @@ jobs:
       - name: AZ Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPLE }}
       - name: Install az ml & set default values for AML
         run: |
           az extension add -n ml -y --version 2.6.1
-          az configure --defaults group=trial workspace=mlws location=central
+          az configure --defaults group=rg-dev-euwest-airesearch workspace=aidevelopmentml location=westeurope
       - name:
         run: |
           AZURE_ML_CLI_PRIVATE_FEATURES_ENABLED=true az ml job create -f pipeline.yml   
