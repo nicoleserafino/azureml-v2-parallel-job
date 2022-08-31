@@ -9,6 +9,10 @@ dependencies:
   - azureml-dataprep
   - azureml-dataset-runtime[pandas,fuse]
   - azureml-telemetry
-  - mlflow
+  - azureml-mlflow
   - mltable
   - pandas
+  - matplotlib
+  - datetime
+  - numpy
+  - scikit-learn==0.22.1

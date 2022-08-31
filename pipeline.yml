@@ -1,28 +1,44 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
 type: pipeline
 display_name: amlv2_parallel_job
-compute: azureml:cpu-cluster
+compute: azureml:Cluster-1-Small
 settings:
   force_rerun: false
 
-jobs:
+# If MLTable reads any csv file in the same folder (i.e. prediction_data_folder), then if there are old csv file from previous runs, it will use them.
+# so it is better to add a date folder to the directory path so that we don't delete stuff but every run uses a new environment.
+# For this we can pass a parameter at the top of the pipeline. Nicole to send an example.
 
+# Seeing other ouput formats: https://docs.microsoft.com/en-us/azure/machine-learning/how-to-read-write-data-v2?tabs=CLI#read-and-write-data-in-a-job
+
+#outputs:
+ # model_train_runID:
+  #  mode: rw_mount
+
+jobs:
   data_engineering:
     type: command
     code: data-engineering
     command: >-
       rm -rf ${{outputs.training_data_folder}};
-      python data-engineering.py --raw_data_file ${{inputs.raw_data_file}} --training_data_folder ${{outputs.training_data_folder}};
+      python data-engineering.py --raw_data_file ${{inputs.raw_data_file}} --training_data_folder ${{outputs.training_data_folder}} --evaluation_data_folder ${{outputs.evaluation_data_folder}};
     inputs:
       raw_data_file:
         type: uri_file
         mode: ro_mount
-        path: azureml://datastores/datalake/paths/amlv2_pj_raw_data/raw_data.csv
+        #path: azureml://datastores/datalake/paths/amlv2_pj_raw_data/raw_data.csv
+        path: azureml://datastores/aidatalake_synapse/paths/EDWData/V_2015-2017_UnknownPaymentTypeIgnored_Half.csv
     outputs:
       training_data_folder:
         type: mltable
         mode: rw_mount
-        path: azureml://datastores/datalake/paths/amlv2_pj_training_data
+        #path: azureml://datastores/datalake/paths/amlv2_pj_training_data
+        path: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_training_data
+      evaluation_data_folder:
+        type: mltable
+        mode: rw_mount
+        #path: azureml://datastores/datalake/paths/amlv2_pj_training_data
+        path: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_evaluation_data
     environment: azureml:amlv2-pj-data-engineering@latest
 
   training:
@@ -46,18 +62,29 @@ jobs:
       predictions_data_folder:
         type: uri_folder
         mode: rw_mount
-        path: azureml://datastores/datalake/paths/amlv2_pj_predictions_data
+        #path: azureml://datastores/datalake/paths/amlv2_pj_predictions_data
+        path: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_predictions_data
       training_log:
         type: uri_file
         mode: rw_mount
-        path: azureml://datastores/datalake/paths/amlv2_pj_training_log/training_log.txt
+        #path: azureml://datastores/datalake/paths/amlv2_pj_training_log/training_log.txt
+        path: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_training_log/training_log.txt
+      model_train_runID: #${{parent.outputs.model_train_runID}}
+        type: uri_file
+        path: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_runID_folder/run_id.txt
+        mode: rw_mount
+      model_output_folder:
+        type: uri_folder
+        mode: rw_mount
+        #path: azureml://datastores/datalake/paths/amlv2_pj_predictions_data
+        path: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_model_output_folder
     input_data: ${{inputs.training_data_folder}}
     task:
       type: function
       code: training
       entry_script: training.py
       environment: azureml:amlv2-pj-training@latest
-      args: --param_1 "PARAM_1_VALUE" --predictions_data_folder ${{outputs.predictions_data_folder}}
+      args: --param_1 "PARAM_1_VALUE" --predictions_data_folder ${{outputs.predictions_data_folder}} --model_train_runID ${{outputs.model_train_runID}} --model_output_folder ${{outputs.model_output_folder}}
       append_row_to: ${{outputs.training_log}}
 
   generate_predictions_mltable:
@@ -71,7 +98,7 @@ jobs:
       echo " "" "" "" """ "delimiter: ','" >> MLTable;
       echo " "" "" "" """ "encoding: 'ascii'" >> MLTable;
       echo " "" "" "" """ "header: all_files_same_headers" >> MLTable;
-    inputs:
+    inputs: #The Input is not being used here but it is so that pipeline.yml knows that this step is to be run after previous step and not at the same time!
       predictions_data_folder:
         type: uri_folder
         mode: ro_mount
@@ -80,16 +107,56 @@ jobs:
       predictions_mltable:
         type: mltable
         mode: rw_mount
-        path: azureml://datastores/datalake/paths/amlv2_pj_predictions_data
+        #path: azureml://datastores/datalake/paths/amlv2_pj_predictions_data
+        path: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_predictions_data
     environment: azureml:AzureML-minimal-ubuntu18.04-py37-cpu-inference@latest
 
+
   evaluation:
-    type: command
-    code: evaluation
-    command: python evaluation.py --predictions_mltable ${{inputs.predictions_mltable}};
+    type: parallel
+    mini_batch_size: "1"
+    mini_batch_error_threshold: -1
+    max_concurrency_per_instance: 2
+    retry_settings:
+      max_retries: 1
+      timeout: 60
+    resources:
+      instance_count: 2
+    environment_variables:
+      env_var_1: "ENV_VAR_1_VALUE"
     inputs:
-      predictions_mltable:
+      #predictions_mltable:
+      #  type: mltable
+      # mode: ro_mount
+      # path: ${{parent.jobs.generate_predictions_mltable.outputs.predictions_mltable}}
+      #model_train_runID: ${{parent.jobs.training.outputs.model_train_runID}}
+      training_log: ${{parent.jobs.training.outputs.training_log}}
+
+      evaluation_data_folder:
         type: mltable
+        mode: eval_mount
+        path: ${{parent.jobs.data_engineering.outputs.evaluation_data_folder}}     
+      model_output_folder:
+        type: uri_folder
         mode: ro_mount
-        path: ${{parent.jobs.generate_predictions_mltable.outputs.predictions_mltable}}
-    environment: azureml:amlv2-pj-evaluation@latest
+        #path: azureml://datastores/datalake/paths/amlv2_pj_predictions_data
+        path: ${{parent.jobs.training.outputs.model_output_folder}}     
+    outputs:
+      Evalresult_data_folder:
+        type: uri_folder
+        mode: rw_mount
+        #path: azureml://datastores/datalake/paths/amlv2_pj_predictions_data
+        path: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_evalResult
+      evaluation_log:
+        type: uri_file
+        mode: rw_mount
+        #path: azureml://datastores/datalake/paths/amlv2_pj_training_log/training_log.txt
+        path: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_evaluation_log/evaluation_log.txt
+    input_data: ${{inputs.evaluation_data_folder}}
+    task:
+      type: function
+      code: evaluation
+      entry_script: evaluation.py
+      environment: azureml:amlv2-pj-evaluation@latest
+      args: --evalResultFolder ${{outputs.Evalresult_data_folder}}  --evaluation_data_folder ${{inputs.evaluation_data_folder}} --training_log ${{inputs.training_log}} --model_output_folder ${{inputs.model_output_folder}} #--model_train_runID ${{inputs.model_train_runID}} 
+      #append_row_to: ${{outputs.evaluation_log}}

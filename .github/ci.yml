@@ -1,0 +1,31 @@
+name: ci
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - closed
+    branches:
+    - integration
+    paths:
+    - data-engineering/**
+    - evaluation/**
+    - training/**
+    - .github/ci.yml
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+      - name: AZ Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
+      - name: Install az ml & set default values for AML
+        run: |
+          az extension add -n ml -y --version 2.6.1
+          az configure --defaults group=trial workspace=mlws location=central
+      - name:
+        run: |
+          AZURE_ML_CLI_PRIVATE_FEATURES_ENABLED=true az ml job create -f pipeline.yml   

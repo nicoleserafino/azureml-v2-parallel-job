@@ -5,12 +5,11 @@ import mltable
 from datetime import timedelta
 import matplotlib.pyplot as plt
 import numpy as np
-#from sklearn.metrics import mean_absolute_percentage_error
+from sklearn.metrics import mean_absolute_percentage_error
 from azureml.core import Run, Dataset,Datastore, Workspace
 import joblib
 from azureml.core import Model
 import mlflow
-import mlflow.sklearn
 #from azureml_user.parallel_run import EntryScript
 
 
@@ -24,7 +23,6 @@ def init():
     parser.add_argument("--evaluation_data_folder", type=str)
     #parser.add_argument("--model_train_runID", type=str)
     parser.add_argument("--training_log", type=str)
-    parser.add_argument("--model_output_folder", type=str)
     
     global args
     args, unknown_args = parser.parse_known_args()
@@ -40,7 +38,7 @@ def init():
     print(f"evaluation_data_folder: {args.evaluation_data_folder}")
     print(f"training_log: {args.training_log}")
     
-    
+
 
     global run_id
     #global logger
@@ -64,8 +62,7 @@ def init():
 
     with open(os.path.join(training_log),'r') as training_logFile:
 
-        run_id_text=training_logFile.read().splitlines()[-1]
-        print("the whole text is: ", run_id_text)
+        run_id_text=training_logFile.readlines()[-1]
         run_id=run_id_text.split(" ")[-1]
         print("our golden Rund_ID is:", run_id)  
 
@@ -74,12 +71,7 @@ def init():
 def run(mini_batch):
     print("I am inside run method")
 
-    
-    client = mlflow.tracking.MlflowClient()
-    #for model in client.list_registered_models():
-    #   print(f"{model.name}")
-    #testModel = client.get_registered_model("paymentPred_tenant_2603713")
-
+        
     #global run
     #global ws
     run = Run.get_context()
@@ -99,47 +91,29 @@ def run(mini_batch):
         print("inside for loop, ClientName: ", clientName)
         #mlflow.register_model("runs:/{}/model_{}".format(run_id,clientName),"paymentPred_{}".format(clientName))
         try: 
-            
-            #if ML Flow works properly then you load the model using run IDs
-            #print("runs:/{}/model_{}".format(run_id,clientName))
-            mymodelName=f"runs:/{run_id}/model_{clientName}"
+            print("runs:/{}/model_{}".format(run_id,clientName))
+           
+            #389aeedc-17b9-45b7-ba3f-440529cb1bd7
+            #mymodelName=f"runs:/{run_id}/model_{clientName}"
+            mymodelName=f"runs:/389aeedc-17b9-45b7-ba3f-440529cb1bd7/model_tenant_2609954"
             print("mymodelName: ", mymodelName)
             newModel= mlflow.sklearn.load_model(mymodelName)
 
-
-            # If MLFlow does not work, then you have to load the model using joblib. This is how you do it.
-            #newModel=joblib.load(os.path.join(args.model_output_folder, "model_{}.joblib".format(clientName)))
-            
+            #newModel= mlflow.sklearn.load_model("runs:/{}/model_{}".format(run_id,clientName))
+            #newModel= mlflow.sklearn.load_model("389aeedc-17b9-45b7-ba3f-440529cb1bd7/model_{}".format(clientName))
             print("newModel: ", newModel)
-           
         except:
             print("Model not found for client: ", clientName)
            
-            print("moving to next customer")
+            print("AN ERROR NEEDS TO GO OUT AND THEN PROCESS STOPS OR GOES TO THE NEXT CLIENT - HOW???")
             continue
         
-
-
-        current_model=None
-
         try:  
-
-            #Downloading the data from Azure.
-            current_modelName= f"paymentPred_{clientName}"
+            current_model_aml = Model(ws, "paymentPred_{}".format(clientName))
+            os.makedirs("current_model", exist_ok=True)
+            current_model_aml.download("current_model/model_{}".format(clientName))
             
-            #current_model_aml = Model(ws, current_modelName)
-            #os.makedirs("current_model", exist_ok=True)
-            #current_model_aml.download("current_model",exist_OK=True)
-            #current_model=mlflow.sklearn.load_model(os.path.join("current_model","paymentPred_{}:1".format(clientName)))
-            
-            #This is first attempt
-            #current_model_aml.download("current_model/model_{}".format(clientName),exist_OK=True)
-            #current_model=mlflow.sklearn.load_model("current_model/model_{}".format(clientName))
-
-
-            # We should be able to load the registered model using MlFlow too **** THIS HAS NOT WORKED YET ****
-            current_model=mlflow.sklearn.load_model("models:/paymentPred_{}/Latest".format(clientName))
-
+            current_model=mlflow.sklearn.load_model("current_model/model_{}".format(clientName))
             print("current_model exists: ", current_model)
         except:
             print("current_model does not exist")
@@ -152,48 +126,28 @@ def run(mini_batch):
         
             #print("run current model against the evaluation dataset")
             #print("run the new model too")
-            #print("if the new model was performing better")
-            #print("register new model")
+            print("if the new model was performing better")
+            print("register new model")
 
             with open(client_file_path,'r') as tenant__evaluate_file:
                 client_evalute_df = pd.read_csv(tenant__evaluate_file)
-                print("this is the datass:" )
-                print(client_evalute_df)
-            
-            client_evalute_df["newModel_Label"]=newModel.predict(client_evalute_df.drop(columns=["DueDate","PaidDate","RaisedDate","Due_Paid_weekDelta"]))
-            
-            eval_mape_newModel=MAPE(client_evalute_df["Due_Paid_weekDelta"],client_evalute_df["newModel_Label"])
-            print("eval_mape_newModel: ", eval_mape_newModel)
-
-
-
-            client_evalute_df["currentModel_Label"]=current_model.predict(client_evalute_df.drop(columns=["DueDate","PaidDate","RaisedDate","Due_Paid_weekDelta","newModel_Label"]))
-
-            eval_mape_currentModel=MAPE(client_evalute_df["Due_Paid_weekDelta"],client_evalute_df["currentModel_Label"])
-            print("eval_mape_currentModel",eval_mape_currentModel)
-            # If new model is performing better, then register the new model
-            if eval_mape_newModel>eval_mape_currentModel:
-                print("new model is better")
-                mlflow.register_model("runs:/{}/model_{}".format(run_id,clientName),"paymentPred_{}".format(clientName))
                 
+            client_evalute_df["newModel_Label"]=newModel.predict(client_evalute_df.drop(columns=["DueDate","PaidDate","RaisedDate","Due_Paid_weekDelta"]))
+            eval_mape_newModel=mean_absolute_percentage_error(client_evalute_df["Due_Paid_weekDelta"],client_evalute_df["newModel_Label"])
 
-               
-               #If ML FLOW did not work and you have to register the model after saving and loading it using joblib, then this is how you save it using MLFlow:
-               #mlflow.sklearn.log_model(newModel,clientName,registered_model_name="paymentPred_{}".format(clientName))
-            
-            else:
-                print("Existing model is performing better")
+            client_evalute_df["currentModel_Label"]=current_model.predict(client_evalute_df.drop(columns=["DueDate","PaidDate","RaisedDate","Due_Paid_weekDelta"]))
+            eval_mape_currentModel=mean_absolute_percentage_error(client_evalute_df["Due_Paid_weekDelta"],client_evalute_df["currentModel_Label"])
+
+            if eval_mape_newModel>eval_mape_currentModel:
+                mlflow.register_model("runs:/{}/model_{}".format(run_id,clientName),"paymentPred_{}".format(clientName))
+
+
                       
         else: 
             
             print("Current model does not exists + Register the new model")
             mlflow.register_model("runs:/{}/model_{}".format(run_id,clientName),"paymentPred_{}".format(clientName))
-            
-            #If ML FLOW did not work and you have to register the model after saving and loading it using joblib, then this is how you save it using MLFlow:
-            #mlflow.sklearn.log_model(newModel,clientName,registered_model_name="paymentPred_{}".format(clientName))
-            
-            
-            
+
         
 
 
