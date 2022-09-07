@@ -1,0 +1,53 @@
+name: ci-2
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - closed
+    branches: 
+    - integration
+    paths:
+      - data-engineering/**
+      - evaluation/**
+      - training/**
+      - .github/ci-2.yml
+jobs:
+  ci-2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8' # Version range or exact version of a Python version to use, using SemVer's version range syntax 
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade build
+          python -m pip install --upgrade twine
+      - name: AZ Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPLE }}   #setup: provide your Azure credentials name stored in github
+
+      - name: Install az ml & set default values for AML
+        run: | #setup: provide group, workspace and location
+          az extension add -n ml -y --version 2.6.1
+          az configure --defaults group=rg-dev-euwest-airesearch workspace=aidevelopmentml location=westeurope   
+      - name: run training pipeline and model validation for all models.
+        run: |
+         AZURE_ML_CLI_PRIVATE_FEATURES_ENABLED=true az ml job create -f pipeline.yml
+      - name: test one or two registered models to make sure things work?!!!
+        uses: ./.githun/actions/create-job
+        with:
+          jobFile: evaluation/evaluation.py
+
+      - name:  Create Pull Request to Main
+        uses: thomaseizinger/create-pull-request@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.ALIRY_GITHUB_SECRET}} #setup: provide your github secret name
+          head: ${{ github.ref }}
+          base: main
+          title: "An automatically created PR by successful CI to main"
+

@@ -1,0 +1,27 @@
+$schema: https://azuremlschemas.azureedge.net/latest/batchDeployment.schema.json
+name: paymentPredDeployment2
+endpoint_name: paymentpredendpoint
+model: azureml:paymentPred_tenant_2609954:14
+code_configuration:
+  code: ./
+  scoring_script: score.py
+environment:
+  conda_file: ./conda.yml
+  image: mcr.microsoft.com/azureml/openmpi3.1.2-ubuntu18.04:latest
+compute: azureml:Cluster-1-Small
+resources:
+  instance_count: 1
+max_concurrency_per_instance: 2
+mini_batch_size: 10
+output_action: append_row
+output_file_name: predictions.csv
+retry_settings:
+  max_retries: 3
+  timeout: 30
+error_threshold: -1
+logging_level: info
+environment_variables: 
+  outputFilePath: "azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline"
+  outputFileName: "predictions.csv"
+  
+
