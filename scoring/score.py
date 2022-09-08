@@ -78,7 +78,7 @@ def run(mini_batch):
         scoringDate["newModel_Label"]=ourModel.predict(scoringDate.drop(columns=["DueDate","PaidDate","RaisedDate","Due_Paid_weekDelta"]))
 
 
-        resultList.append(scoringDate)
+        resultList.append("{}:{}".format(client_basename, scoringDate))
 
     try:
         #with open(myFile,'w+') as scoredData:
@@ -88,5 +88,5 @@ def run(mini_batch):
     except:
         print ("cannot open file to write in it")
 
-
-    return pd.concat(resultList)
+    return resultList
+    #return pd.concat(resultList)
