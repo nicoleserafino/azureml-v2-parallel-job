@@ -1,5 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/batchDeployment.schema.json
-name: paymentPredDeployment2
+name: paymentpreddeployment2
 endpoint_name: paymentpredendpoint
 model: azureml:paymentPred_tenant_2609954:14
 code_configuration:
