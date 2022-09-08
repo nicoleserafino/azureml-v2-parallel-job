@@ -79,7 +79,7 @@ def run(mini_batch):
 
 
         #resultList.append("{}:{}".format(client_basename, scoringDate))
-        resultList.append(pd.concat(scoringDate))
+        resultList.append(scoringDate)
     try:
         #with open(myFile,'w+') as scoredData:
 
@@ -88,5 +88,5 @@ def run(mini_batch):
     except:
         print ("cannot open file to write in it")
 
-    return resultList
-    #return pd.concat(resultList)
+    #return resultList
+    return pd.concat(resultList)
