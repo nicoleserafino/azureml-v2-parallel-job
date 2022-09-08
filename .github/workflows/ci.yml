@@ -26,6 +26,20 @@ jobs:
         run: |
           az extension add -n ml -y --version 2.6.1
           az configure --defaults group=rg-dev-euwest-airesearch workspace=aidevelopmentml location=westeurope
-      - name: run-pipeline
+
+      - name: run training pipeline and model validation for all models.
         run: |
-          AZURE_ML_CLI_PRIVATE_FEATURES_ENABLED=true az ml job create -f pipeline.yml   
+         AZURE_ML_CLI_PRIVATE_FEATURES_ENABLED=true az ml job create -f pipeline.yml
+
+      # - name: test one or two registered models to make sure things work?!!!
+        #uses: ./.githun/actions/create-job
+        #with:
+          #jobFile: evaluation/evaluation.py
+
+      - name:  Create Pull Request to Main
+        uses: thomaseizinger/create-pull-request@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.AZURE_SERVICE_PRINCIPLE}} #setup: provide your github secret name
+          head: ${{ github.ref }}
+          base: main
+          title: "An automatically created PR by successful CI to main"

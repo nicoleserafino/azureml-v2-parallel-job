@@ -20,15 +20,15 @@ def init():
 
     #global ws
 
-    msi_auth= msi()
+    #msi_auth= msi()
     #subscriptionID can be passed as env variable 
     #print("this is the msi_auth",msi_auth )
     #ws = Workspace(subscription_id="411c73a9-919b-4030-bc19-4599758da714" , resource_group="RG-DEV-EUWEST-AIResearch",workspace_name="aidevelopmentML",auth=msi_auth)
-    ws = Workspace.get(subscription_id="411c73a9-919b-4030-bc19-4599758da714" , resource_group="RG-DEV-EUWEST-AIResearch", location='euwest', name="aidevelopmentML", cloud='AzureCloud',auth=msi_auth)
+    #ws = Workspace.get(subscription_id="411c73a9-919b-4030-bc19-4599758da714" , resource_group="RG-DEV-EUWEST-AIResearch", location='euwest', name="aidevelopmentML", cloud='AzureCloud',auth=msi_auth)
     #print("after workspace")
    
     #print("found workspace: ", ws.name)
-    print(ws.name) 
+    #print(ws.name) 
 
 
     global myFile
@@ -81,10 +81,10 @@ def run(mini_batch):
         resultList.append(scoringDate)
 
     try:
-        with open(myFile,'w+') as scoredData:
+        #with open(myFile,'w+') as scoredData:
 
              
-            resultList.to_csv(scoredData,index=False)
+        resultList.to_csv("predictionTest.csv",index=False)
     except:
         print ("cannot open file to write in it")
 

@@ -21,7 +21,7 @@ retry_settings:
 error_threshold: -1
 logging_level: info
 environment_variables: 
-  outputFilePath: "azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline"
+  outputFilePath: "azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/score_predictions"
   outputFileName: "predictions.csv"
   
 
