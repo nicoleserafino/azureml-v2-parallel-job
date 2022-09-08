@@ -31,10 +31,14 @@ jobs:
         run: |
          AZURE_ML_CLI_PRIVATE_FEATURES_ENABLED=true az ml job create -f pipeline.yml
 
-      # - name: test one or two registered models to make sure things work?!!!
-        #uses: ./.githun/actions/create-job
-        #with:
-          #jobFile: evaluation/evaluation.py
+       - name: test one or two registered models to make sure things work?!!!
+         uses: ./.github/actions/aml-endpoint-test
+         with:
+           resourceGroup: rg-dev-euwest-airesearch 
+           workspaceName: aidevelopmentml 
+           endpointFile: scoring/batch-endpoint.yml
+           requestFile: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_evaluation_data/tenant_2603713.csv
+
 
       - name:  Create Pull Request to Main
         uses: thomaseizinger/create-pull-request@master

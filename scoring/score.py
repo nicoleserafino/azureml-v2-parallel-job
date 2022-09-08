@@ -3,6 +3,7 @@
 
 from ctypes import wstring_at
 import os
+from posixpath import sep
 import numpy as np
 
 import azureml
@@ -11,8 +12,9 @@ from azureml.core import Model,Workspace
 from azureml.core.authentication import MsiAuthentication as msi
 import pandas as pd
 import mlflow
+from azureml.core import Run,Dataset
 from azureml.core.authentication import AzureCliAuthentication as ACA
-
+import tempfile
 def init():
     print ("I am inside init method")
     #ws = Workspace.from_config()
@@ -31,7 +33,7 @@ def init():
     #print(ws.name) 
 
 
-    global myFile
+    """    global myFile
     global filePath
     global fileName
     filePath =os.getenv('outputFilePath')
@@ -44,11 +46,20 @@ def init():
         os.remove(myFile)
         print("the file has been deleted")
     else:
-        print("its a new file")
+        print("its a new file")"""
     
 
+    global ws, datastore, output_folder_prep
+
+    run = Run.get_context()
+    ws = run.experiment.workspace
+
+    datastore_name = os.getenv("DATASTORE")
+
+    datastore = ws.datastores[datastore_name]
 
 
+    output_folder_prep = os.getenv("OUTPUT_FOLDER")
 
 
 
@@ -78,15 +89,27 @@ def run(mini_batch):
         scoringDate["newModel_Label"]=ourModel.predict(scoringDate.drop(columns=["DueDate","PaidDate","RaisedDate","Due_Paid_weekDelta"]))
 
 
-        #resultList.append("{}:{}".format(client_basename, scoringDate))
-        resultList.append(scoringDate)
-    try:
+        resultList.append("{}:{}".format(clientName, scoringDate.shape[0]))
+        #resultList.append(scoringDate)
+   
         #with open(myFile,'w+') as scoredData:
-
              
-        resultList.to_csv("predictionTest.csv",index=False)
-    except:
-        print ("cannot open file to write in it")
+        #resultList.to_csv("predictionTest.csv",index=False,header=True, sep=",")
+    
+    
 
     #return resultList
-    return pd.concat(resultList)
+
+    target = (datastore,output_folder_prep)
+
+    # write to Azure storage
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        scoringDate.to_csv(f'{tmpdir}/{clientName}.csv', index=False,header=True, sep=",")
+        Dataset.File.upload_directory(tmpdir,target,overwrite=True)
+
+
+    return resultList
+
+
+    

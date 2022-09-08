@@ -13,15 +13,15 @@ resources:
   instance_count: 1
 max_concurrency_per_instance: 2
 mini_batch_size: 10
-output_action: append_row
-output_file_name: predictions.csv
+output_action: summary_only #append_row
+#output_file_name: predictions.csv
 retry_settings:
   max_retries: 3
   timeout: 30
 error_threshold: -1
 logging_level: info
 environment_variables: 
-  outputFilePath: "azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/score_predictions"
-  outputFileName: "predictions.csv"
+  DATASTORE: "aidatalake_synapse"
+  OUTPUT_FOLDER: "score_output"
   
 
