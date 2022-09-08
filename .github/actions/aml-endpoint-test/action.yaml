@@ -27,7 +27,7 @@ runs:
 
         ENDPOINT_FILE=${{ inputs.endpointFile }}
         ENDPOINT_NAME=$(yq -r ".endpoint_name" $ENDPOINT_FILE)
-        TEST_DEPLOYMENT_NAME = $(yq -r ".name" $ENDPOINT_FILE)
+        TEST_DEPLOYMENT_NAME=$(yq -r ".name" $ENDPOINT_FILE)
 
         TEST_RESPONSE=$(az ml batch-endpoint invoke -n $ENDPOINT_NAME --deployment $TEST_DEPLOYMENT_NAME --input ${{ inputs.requestFile }} --input-type uri_file) 
         # TODO: test that response is valid, fail with exit 1 if not
