@@ -36,7 +36,7 @@ jobs:
         with:
           resourceGroup: rg-dev-euwest-airesearch 
           workspaceName: aidevelopmentml 
-          endpointFile: scoring/batch-endpoint.yml
+          endpointFile: scoring/batch-deployment.yml
           requestFile: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_evaluation_data/tenant_2603713.csv
 
       - name:  Create Pull Request to Main
