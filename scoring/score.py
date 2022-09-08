@@ -78,8 +78,8 @@ def run(mini_batch):
         scoringDate["newModel_Label"]=ourModel.predict(scoringDate.drop(columns=["DueDate","PaidDate","RaisedDate","Due_Paid_weekDelta"]))
 
 
-        resultList.append("{}:{}".format(client_basename, scoringDate))
-        #resultList.append(scoringDate)
+        #resultList.append("{}:{}".format(client_basename, scoringDate))
+        resultList.append(pd.concat(scoringDate))
     try:
         #with open(myFile,'w+') as scoredData:
 

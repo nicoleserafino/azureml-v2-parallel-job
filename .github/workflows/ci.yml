@@ -10,7 +10,7 @@ on:
     - data-engineering/**
     - evaluation/**
     - training/**
-    - .github/ci.yml
+    - .github/workflows/ci.yml
  
 jobs:
   ci:
