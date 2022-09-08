@@ -56,7 +56,7 @@ jobs:
         with:
           resourceGroup: rg-dev-euwest-airesearch 
           workspaceName: aidevelopmentml 
-          endpointFile: .././batch-endpoint.yml
+          endpointFile: scoring/batch-endpoint.yml
           requestFile: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_evaluation_data/tenant_2603713.csv
 
   
