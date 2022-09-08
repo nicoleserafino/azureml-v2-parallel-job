@@ -63,7 +63,7 @@ runs:
             
         # Identify which slot should be used to stage this deployment based on current traffic
         echo "Reading endpoint traffic to identify target staging deployment slot"
-        az ml online-endpoint show -n $ENDPOINT_NAME --query "traffic" -o yaml > _endpoint_traffic.yml
+        az ml batch-endpoint show -n $ENDPOINT_NAME --query "traffic" -o yaml > _endpoint_traffic.yml
         echo "Endpoint traffic:"
         cat _endpoint_traffic.yml
         GREEN_TRAFFIC=$(yq .green _endpoint_traffic.yml)
