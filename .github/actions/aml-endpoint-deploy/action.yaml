@@ -60,36 +60,11 @@ runs:
                 echo "Skipping update of endpoint with name: $ENDPOINT_NAME"
             fi
         }
-            
-        # Identify which slot should be used to stage this deployment based on current traffic
-        echo "Reading endpoint traffic to identify target staging deployment slot"
-        az ml batch-endpoint show -n $ENDPOINT_NAME --query "traffic" -o yaml > _endpoint_traffic.yml
-        echo "Endpoint traffic:"
-        cat _endpoint_traffic.yml
-        GREEN_TRAFFIC=$(yq .green _endpoint_traffic.yml)
-        BLUE_TRAFFIC=$(yq .blue _endpoint_traffic.yml)
-        if [[ $GREEN_TRAFFIC == null || $GREEN_TRAFFIC == 0 ]]; then
-            STAGING_DEPLOYMENT_NAME='green';
-        else
-            if [[ $BLUE_TRAFFIC == null || $BLUE_TRAFFIC == 0 ]]; then
-                STAGING_DEPLOYMENT_NAME='blue';
-            else
-                echo "::error::No staging slots available for endpoint $ENDPOINT_NAME. One of the green/blue slots needs to have 0% traffic.";
-                exit 1;
-            fi
-        fi
-        echo "Selected staging deployment name: $STAGING_DEPLOYMENT_NAME"
-
-        # Updating deployment file to setup name of deployment based on staging name selected above
-        echo "Updating deployment name to $STAGING_DEPLOYMENT_NAME"
-        if [[ $STAGING_DEPLOYMENT_NAME == "blue" ]]; then
-          yq -y -i '.name= "blue"' $DEPLOYMENT_FILE;
-        else
-          yq -y -i '.name= "green"' $DEPLOYMENT_FILE;
-        fi
+        
 
         # Overwrite the model version set in the deployment file with a specific version or 'latest' if specified in the workflow
         DEPLOYMENT_MODEL=$(yq -r ".model" $DEPLOYMENT_FILE | cut -d: -f2)
+        STAGING_DEPLOYMENT_NAME= yq -r ".name" $DEPLOYMENT_FILE;
         DEPLOYMENT_MODEL_VERSION=$(yq -r ".model" $DEPLOYMENT_FILE | cut -d: -f3)
         if [ -z "${{ inputs.modelVersion}}" ]; then
           TARGET_MODEL_VERSION=$DEPLOYMENT_MODEL_VERSION
