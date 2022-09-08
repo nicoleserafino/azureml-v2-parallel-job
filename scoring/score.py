@@ -79,7 +79,7 @@ def run(mini_batch):
 
 
         resultList.append("{}:{}".format(client_basename, scoringDate))
-
+        #resultList.append(scoringDate)
     try:
         #with open(myFile,'w+') as scoredData:
 
