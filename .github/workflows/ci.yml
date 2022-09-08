@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   pull_request:
     types:
-      - closed
+      - closed 
     branches:
     - integration
     paths:
@@ -11,7 +11,7 @@ on:
     - evaluation/**
     - training/**
     - .github/ci.yml
-
+ 
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -39,7 +39,7 @@ jobs:
       - name:  Create Pull Request to Main
         uses: thomaseizinger/create-pull-request@master
         with:
-          GITHUB_TOKEN: ${{ secrets.AZURE_SERVICE_PRINCIPLE}} #setup: provide your github secret name
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN_GITHUB}} #setup: provide your github secret name
           head: ${{ github.ref }}
           base: main
           title: "An automatically created PR by successful CI to main"
