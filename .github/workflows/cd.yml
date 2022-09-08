@@ -45,8 +45,8 @@ jobs:
         with:
           resourceGroup: rg-dev-euwest-airesearch 
           workspaceName: aidevelopmentml 
-          endpointFile: .././batch-endpoint.yml
-          deploymentFile: .././scoring/batch-deployment.yml
+          endpointFile: scoring/batch-endpoint.yml
+          deploymentFile: scoring/batch-deployment.yml
           modelVersion: latest
 
    
