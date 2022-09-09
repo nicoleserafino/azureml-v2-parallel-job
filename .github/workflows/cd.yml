@@ -40,14 +40,14 @@ jobs:
           sudo apt install jq
           pip install yq
       
-      - name: Run deployment
-        uses: ./.github/actions/aml-endpoint-deploy
-        with:
-          resourceGroup: rg-dev-euwest-airesearch 
-          workspaceName: aidevelopmentml 
-          endpointFile: scoring/batch-endpoint.yml
-          deploymentFile: scoring/batch-deployment.yml
-          modelVersion: latest
+      #- name: Run deployment
+       # uses: ./.github/actions/aml-endpoint-deploy
+       # with:
+       #   resourceGroup: rg-dev-euwest-airesearch 
+        #  workspaceName: aidevelopmentml 
+        #  endpointFile: scoring/batch-deployment.yml
+        #  deploymentFile: scoring/batch-deployment.yml
+        #  modelVersion: latest
 
    
       # WHy do we need to pass the resourcegroup etc, the fact that we connect to resource group through Service Principal?
@@ -56,7 +56,7 @@ jobs:
         with:
           resourceGroup: rg-dev-euwest-airesearch 
           workspaceName: aidevelopmentml 
-          endpointFile: scoring/batch-endpoint.yml
+          endpointFile: scoring/batch-deployment.yml
           requestFile: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_evaluation_data/tenant_2603713.csv
 
   

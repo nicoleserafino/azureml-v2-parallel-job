@@ -87,8 +87,6 @@ runs:
         echo "Creating deployment with name: $ENDPOINT_NAME/$STAGING_DEPLOYMENT_NAME"
         deployment_Job=$(az ml batch-deployment create -f $DEPLOYMENT_FILE --only-show-errors --set tags.git_commit=${GITHUB_SHA})
         
-        
-        
         echo "Deployment completed"
 
         # Saving logs
