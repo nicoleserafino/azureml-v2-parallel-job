@@ -24,10 +24,23 @@ runs:
       run: |
         set -e
         az configure --defaults workspace=${{ inputs.workspaceName }} group=${{ inputs.resourceGroup }}
-
+        
         ENDPOINT_FILE=${{ inputs.endpointFile }}
         ENDPOINT_NAME=$(yq -r ".endpoint_name" $ENDPOINT_FILE)
         TEST_DEPLOYMENT_NAME=$(yq -r ".name" $ENDPOINT_FILE)
 
-        TEST_RESPONSE=$(az ml batch-endpoint invoke -n $ENDPOINT_NAME --deployment $TEST_DEPLOYMENT_NAME --input ${{ inputs.requestFile }} --input-type uri_file) 
+        run_id=$(az ml batch-endpoint invoke -n $ENDPOINT_NAME --deployment $TEST_DEPLOYMENT_NAME --input ${{ inputs.requestFile }} --input-type uri_file --query name -o tsv) 
         # TODO: test that response is valid, fail with exit 1 if not
+        status=$(az ml job show $run_id --query status -o tsv)
+        echo $status
+        if [[ $status == "Completed" ]]
+        then 
+          echo "Job completed"
+        elif [[ $status == "Failed" ]]
+        then 
+          echo "Job failed"
+          exist 1
+        else
+          echo "Job status not failed or completed"
+          exit 2
+        fi
