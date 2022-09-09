@@ -36,11 +36,15 @@ runs:
         if [[ $status == "Completed" ]]
         then 
           echo "Job completed"
+        elif [[ $status == "Running" ]]
+        then 
+          echo "Job is running but not sure if it will fail or will succeed"
+        
         elif [[ $status == "Failed" ]]
         then 
           echo "Job failed"
           exist 1
         else
-          echo "Job status not failed or completed"
+          echo "Job status not failed nor running nor completed"
           exit 2
         fi
