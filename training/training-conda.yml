@@ -9,5 +9,5 @@ dependencies:
   - azureml-dataprep
   - azureml-dataset-runtime[pandas,fuse]
   - azureml-telemetry
-  - mlflow
+  - azureml-mlflow
   - pandas

@@ -1,0 +1,15 @@
+name: amlv2-pj-score
+channels:
+- conda-forge
+dependencies:
+- pip
+- python=3.8
+- pip:
+  - azureml-core
+  - azureml-dataprep
+  - azureml-dataset-runtime[pandas,fuse]
+  - azureml-telemetry
+  - azureml-mlflow
+  - pandas
+  - joblib
+  - scikit-learn

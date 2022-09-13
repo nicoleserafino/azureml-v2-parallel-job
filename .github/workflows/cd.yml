@@ -1,0 +1,22 @@
+name: workshop-cd
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+    branches: 
+    - main
+    paths:
+    - scoring/**
+    - .github/cd.yml
+
+jobs:
+  cd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+      - name: AZ Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}

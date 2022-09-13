@@ -1,0 +1,24 @@
+$schema: https://azuremlschemas.azureedge.net/latest/batchDeployment.schema.json
+name: batch-endpoint
+endpoint_name: mybatchedptns
+model: azureml:1099_tropicana:1
+code_configuration:
+  code: ./
+  scoring_script: score.py 
+environment:
+  conda_file: batch-score-env.yaml
+  image: mcr.microsoft.com/azureml/openmpi3.1.2-ubuntu18.04:latest
+compute: azureml:cpu-cluster
+resources:
+  instance_count: 1
+max_concurrency_per_instance: 2
+mini_batch_size: 10
+output_action: summary_only
+retry_settings:
+  max_retries: 3
+  timeout: 30
+error_threshold: -1
+logging_level: info
+environment_variables:
+    DATASTORE: "workspaceblobstore"
+    OUTPUT_FOLDER: "score_output"
