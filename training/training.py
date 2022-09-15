@@ -12,7 +12,7 @@ import joblib
 
 # init() called once per process
 def init():
-
+  
     # retrieve parameters from the entry script
     parser = argparse.ArgumentParser()
     parser.add_argument("--param_1", type=str)
