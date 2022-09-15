@@ -87,7 +87,7 @@ def run(mini_batch):
         ourModel=mlflow.sklearn.load_model("models:/paymentPred_{}/Latest".format(clientName))           
        
         scoringDate["newModel_Label"]=ourModel.predict(scoringDate.drop(columns=["DueDate","PaidDate","RaisedDate","Due_Paid_weekDelta"]))
-
+  
 
         resultList.append("{}:{}".format(clientName, scoringDate.shape[0]))
         #resultList.append(scoringDate)
@@ -96,8 +96,8 @@ def run(mini_batch):
              
         #resultList.to_csv("predictionTest.csv",index=False,header=True, sep=",")
     
+     
     
-
     #return resultList
 
     target = (datastore,output_folder_prep)
