@@ -28,25 +28,27 @@ runs:
         ENDPOINT_FILE=${{ inputs.endpointFile }}
         ENDPOINT_NAME=$(yq -r ".endpoint_name" $ENDPOINT_FILE)
         TEST_DEPLOYMENT_NAME=$(yq -r ".name" $ENDPOINT_FILE)
-        
+        echo $TEST_DEPLOYMENT_NAME
         deploymentresource=$(az ml batch-deployment list -e $ENDPOINT_NAME --query "[?contains(name, $TEST_DEPLOYMENT_NAME)].{Name:name}" -otsv)
+        echo $deploymentresouce
         if [[ $deploymentresouce == $TEST_DEPLOYMENT_NAME ]];
           then
           echo "found existing deployment to test"
           run_id=$(az ml batch-endpoint invoke --name $ENDPOINT_NAME --deployment $TEST_DEPLOYMENT_NAME --input ${{ inputs.requestFile }} --input-type uri_file --query name -o tsv) 
+          
           # TODO: test that response is valid, fail with exit 1 if not
           status="Queued"
-          while ! [[ $status =~ ^(Failed|Completed|Canceled)$ ]];
+          while ! [[ $status != ^(Failed|Completed|Canceled)$ ]];
           do
             sleep 60s
             echo "Still Queued/ Running"
             status=$(az ml job show -n $run_id --query status -o tsv)
             echo $status
           done
-          if [[ $status == "Completed" ]]
+          if [[ $status == "Completed" ]];
           then 
             echo "Job completed"      
-          elif [[ $status == "Failed" ]]
+          elif [[ $status == "Failed" ]];
           then 
             echo "Job failed"
             exit 1
