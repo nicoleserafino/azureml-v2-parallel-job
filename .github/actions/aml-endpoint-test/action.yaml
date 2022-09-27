@@ -29,8 +29,8 @@ runs:
         ENDPOINT_NAME=$(yq -r ".endpoint_name" $ENDPOINT_FILE)
         TEST_DEPLOYMENT_NAME=$(yq -r ".name" $ENDPOINT_FILE)
         echo $TEST_DEPLOYMENT_NAME
-        deploymentresource=$(az ml batch-deployment list -e $ENDPOINT_NAME --query "[?contains(name, $TEST_DEPLOYMENT_NAME)].{Name:name}" -otsv)
-        echo $deploymentresouce
+        deploymentresource=$(az ml batch-deployment list -e $ENDPOINT_NAME --query "[?name=='$TEST_DEPLOYMENT_NAME].{Name:name}" -otsv)
+        echo $deploymentresouce;
         if [[ $deploymentresouce == $TEST_DEPLOYMENT_NAME ]];
           then
           echo "found existing deployment to test"
@@ -38,7 +38,7 @@ runs:
           
           # TODO: test that response is valid, fail with exit 1 if not
           status="Queued"
-          while ! [[ $status != ^(Failed|Completed|Canceled)$ ]];
+          while ! [[ $status =~ ^(Failed|Completed|Canceled)$ ]];
           do
             sleep 60s
             echo "Still Queued/ Running"
