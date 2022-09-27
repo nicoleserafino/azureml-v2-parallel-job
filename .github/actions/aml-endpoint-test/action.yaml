@@ -28,6 +28,7 @@ runs:
         ENDPOINT_FILE=${{ inputs.endpointFile }}
         ENDPOINT_NAME=$(yq -r ".endpoint_name" $ENDPOINT_FILE)
         TEST_DEPLOYMENT_NAME=$(yq -r ".name" $ENDPOINT_FILE)
+        echp $ENDPOINT_NAME
         echo $TEST_DEPLOYMENT_NAME
         deploymentresource=$(az ml batch-deployment list -e $ENDPOINT_NAME --query "[?name=='$TEST_DEPLOYMENT_NAME'].{Name:name}" -otsv)
         echo $deploymentresouce;
