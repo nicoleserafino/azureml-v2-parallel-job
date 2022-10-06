@@ -28,10 +28,10 @@ runs:
         ENDPOINT_FILE=${{ inputs.endpointFile }}
         ENDPOINT_NAME=$(yq -r ".endpoint_name" $ENDPOINT_FILE)
         TEST_DEPLOYMENT_NAME=$(yq -r ".name" $ENDPOINT_FILE)
-        echo $ENDPOINT_NAME
-        echo $TEST_DEPLOYMENT_NAME
+        echo "test deployment name: $TEST_DEPLOYMENT_NAME"
+        echo "endpoint name: $ENDPOINT_NAME"
         deploymentresource=$(az ml batch-deployment list -e $ENDPOINT_NAME --query "[?name=='$TEST_DEPLOYMENT_NAME'].{Name:name}" -otsv)
-        echo $deploymentresouce;
+        echo "deployment resouce: $deploymentresouce"
         if [ "$deploymentresouce" == "$TEST_DEPLOYMENT_NAME" ];
           then
           echo "found existing deployment to test"
