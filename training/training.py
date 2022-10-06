@@ -29,6 +29,7 @@ def run(mini_batch):
     
     results = []
     logger.info(f"train run({mini_batch})")
+    
     for tenant_file_path in mini_batch:
         tenant_basename = os.path.basename(tenant_file_path)
         # process the tenant training data file to train a model + infer predictions for the final evaluation step
