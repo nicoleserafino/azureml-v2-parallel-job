@@ -32,7 +32,7 @@ runs:
         echo $TEST_DEPLOYMENT_NAME
         deploymentresource=$(az ml batch-deployment list -e $ENDPOINT_NAME --query "[?name=='$TEST_DEPLOYMENT_NAME'].{Name:name}" -otsv)
         echo $deploymentresouce;
-        if [[ $deploymentresouce == $TEST_DEPLOYMENT_NAME ]];
+        if [ "$deploymentresouce" == "$TEST_DEPLOYMENT_NAME" ];
           then
           echo "found existing deployment to test"
           run_id=$(az ml batch-endpoint invoke --name $ENDPOINT_NAME --deployment $TEST_DEPLOYMENT_NAME --input ${{ inputs.requestFile }} --input-type uri_file --query name -o tsv) 
