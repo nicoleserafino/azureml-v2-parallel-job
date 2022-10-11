@@ -28,11 +28,11 @@ runs:
         ENDPOINT_FILE=${{ inputs.endpointFile }}
         ENDPOINT_NAME=$(yq -r ".endpoint_name" $ENDPOINT_FILE)
         TEST_DEPLOYMENT_NAME=$(yq -r ".name" $ENDPOINT_FILE)
-        echp $ENDPOINT_NAME
-        echo $TEST_DEPLOYMENT_NAME
+        echo "endpoint name: $ENDPOINT_NAME"
+        echo "deployment name: $TEST_DEPLOYMENT_NAME"
         deploymentresource=$(az ml batch-deployment list -e $ENDPOINT_NAME --query "[?name=='$TEST_DEPLOYMENT_NAME'].{Name:name}" -otsv)
-        echo $deploymentresouce;
-        if [[ $deploymentresouce == $TEST_DEPLOYMENT_NAME ]];
+        echo "deployment resource name: $deploymentresource"
+        if [ "$deploymentresource" == "$TEST_DEPLOYMENT_NAME" ];
           then
           echo "found existing deployment to test"
           run_id=$(az ml batch-endpoint invoke --name $ENDPOINT_NAME --deployment $TEST_DEPLOYMENT_NAME --input ${{ inputs.requestFile }} --input-type uri_file --query name -o tsv) 
@@ -59,5 +59,4 @@ runs:
           fi
         else
           echo "Existing deployment not found"
-          exit 3
         fi
