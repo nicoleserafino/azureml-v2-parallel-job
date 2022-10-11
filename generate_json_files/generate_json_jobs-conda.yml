@@ -1,0 +1,14 @@
+name: amlv2-pj-generate-job-jsons
+channels:
+- conda-forge
+dependencies:
+- pip
+- python=3.8
+- pip:
+  - azureml-core
+  - azureml-dataprep
+  - azureml-dataset-runtime[pandas,fuse]
+  - azureml-telemetry
+  - pandas
+  - scikit-learn
+  - json
