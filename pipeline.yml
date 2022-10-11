@@ -16,6 +16,31 @@ settings:
   #  mode: rw_mount
 
 jobs:
+  
+  generate_json_files:
+    type: command
+    code: generate_json_files
+    command: >-
+      rm -rf ${{outputs.job_json_files}};
+      python generate_json_files.py --custKey_file ${{inputs.custKey_file}} --job_json_files ${{outputs.job_json_folder}}
+    inputs:
+      custKey_file:
+        type: uri_file
+        mode: ro_mount
+        #path: azureml://datastores/I need to keep it generic and pass an argument to work for different tenants
+        path:  azureml://datastores/aidatalake_synapse/paths/PaymentForecast/Bronze/CustKeys/TenantCustomerKeys.csv
+    outputs:
+      job_json_folder:
+        type: mltable
+        mode: rw_mount
+        #path: azureml://datastores/datalake/paths/amlv2_pj_training_data
+        path: azureml://datastores/aidatalake_synapse/paths/PaymentForecast/Silver/jsonJobFiles
+    environment_variables:
+      startingMonth: "September"
+      history_duration: "12"
+    environment: azureml:amlv2-pj-generate-job-jsons@latest
+
+    
   data_engineering:
     type: command
     code: data-engineering
@@ -41,6 +66,7 @@ jobs:
         path: azureml://datastores/aidatalake_synapse/paths/EDWData/parallel-pipeline/amlv2_pj_evaluation_data
     environment: azureml:amlv2-pj-data-engineering@latest
 
+
   training:
     type: parallel
     mini_batch_size: "1"
@@ -58,6 +84,12 @@ jobs:
         type: mltable
         mode: eval_mount
         path: ${{parent.jobs.data_engineering.outputs.training_data_folder}}
+      silver_data_folder:
+        type: uri_folder
+        mode: row_mount
+        path: azureml://datastores/aidatalake_synapse/paths/PaymentForecast/Silver/Data
+
+      
     outputs:
       predictions_data_folder:
         type: uri_folder

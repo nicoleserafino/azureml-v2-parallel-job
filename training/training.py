@@ -19,6 +19,7 @@ def init():
     parser.add_argument("--predictions_data_folder", type=str)
     parser.add_argument("--model_train_runID", type=str)
     parser.add_argument("--model_output_folder", type=str)
+    parser.add_argument("--silver_data_folder", type=str)
     args, unknown = parser.parse_known_args()
     global param_1
     global predictions_data_folder
@@ -29,6 +30,10 @@ def init():
     
     global model_output_folder
     model_output_folder = args.model_output_folder
+
+    silver_data_folder = args.silver_data_folder
+
+
     # retrieve environment variables
     global env_var_1
     env_var_1 = os.environ['env_var_1']
@@ -64,13 +69,27 @@ def run(mini_batch):
     results = []
     logger.info(f"train run({mini_batch})")
     for client_file_path in mini_batch:
-        client_basename = os.path.basename(client_file_path)
+       
+       
+    """client_basename = os.path.basename(client_file_path)
         # process the tenant training data file to train a model + infer predictions for the final evaluation step
         with open(client_file_path,'r') as tenant_file:
             client_df = pd.read_csv(tenant_file)
         logger.info(f"train processing({client_basename} => {client_df}) with param_1:{param_1}, env_var_1:{env_var_1}")
         # TODO: replace this part with your model training
-        #time.sleep(1) 
+        #time.sleep(1)"""
+
+    client_basename = os.path.basename(client_file_path)
+     # process the tenant training data file to train a model + infer predictions for the final evaluation step
+    with open(client_file_path,'r') as tenant_file:  
+
+        customerPath_in_silverData="READ Json linebyline create the path"
+        fullPath_DataLake=os.path.join(silver_data_folder,customerPath_in_silverData)
+
+
+    with open(fullPath_DataLake,'r') as tenant_file:
+        client_df = pd.read_csv(tenant_file)
+
 
 
         """        y=client_df["Due_Paid_weekDelta"]
@@ -79,6 +98,8 @@ def run(mini_batch):
 
         model = LinearRegression().fit(x_train.drop(columns=["DueDate","PaidDate","RaisedDate"]), y_train)"""
         
+
+
 
         X, y, sample_weights = prepare_data(client_df) 
         split_ratio = 0.25
